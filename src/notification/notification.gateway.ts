@@ -6,8 +6,11 @@ import {
   OnGatewayDisconnect,
   MessageBody,
   SubscribeMessage,
+  ConnectedSocket,
 } from '@nestjs/websockets';
+import { UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
+import { W3cJwtGuard } from '../auth/w3c-jwt.guard';
 
 @WebSocketGateway({
   namespace: '/notifications',
@@ -23,6 +26,7 @@ export class NotificationGateway
     console.log('WebSocket Gateway initialized');
   }
 
+  @UseGuards(W3cJwtGuard)
   handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);
   }
@@ -32,6 +36,7 @@ export class NotificationGateway
   }
 
   @SubscribeMessage('send-notification')
+  @UseGuards(W3cJwtGuard)
   handleSendNotification(
     @MessageBody() data: { message: string },
   ): { response: string } {
@@ -40,6 +45,7 @@ export class NotificationGateway
   }
 
   @SubscribeMessage('broadcast')
+  @UseGuards(W3cJwtGuard)
   handleBroadcast(
     @MessageBody() data: { message: string },
   ): { status: string } {
