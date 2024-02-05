@@ -7,7 +7,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (request) => {
+        (request: any) => {
           if (request?.handshake?.auth?.token) {
             return request.handshake.auth.token;
           }

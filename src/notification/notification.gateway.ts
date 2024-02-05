@@ -8,11 +8,9 @@ import {
   SubscribeMessage,
   ConnectedSocket,
 } from '@nestjs/websockets';
-import { UseGuards, UseFilters } from '@nestjs/common';
+import { UseFilters } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { W3cJwtGuard } from '../auth/w3c-jwt.guard';
 import { AllExceptionsFilter } from '../filters/all-exceptions.filter';
-import { User } from '../decorators/user.decorator';
 
 @WebSocketGateway({
   namespace: '/notifications',
@@ -23,13 +21,12 @@ export class NotificationGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   afterInit() {
     console.log('WebSocket Gateway initialized');
   }
 
-  @UseGuards(W3cJwtGuard)
   handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);
   }
@@ -39,11 +36,8 @@ export class NotificationGateway
   }
 
   @SubscribeMessage('send-notification')
-  @UseGuards(W3cJwtGuard)
-  handleSendNotification(
-    @MessageBody() data: { message: string },
-    @User() user: any,
-  ): { response: string } {
+  handleSendNotification(client: Socket, data: { message: string }) {
+    const user = (client as any).user;
     this.server.emit('notification', {
       message: data.message,
       sender: user?.username,
@@ -52,11 +46,8 @@ export class NotificationGateway
   }
 
   @SubscribeMessage('broadcast')
-  @UseGuards(W3cJwtGuard)
-  handleBroadcast(
-    @MessageBody() data: { message: string },
-    @User() user: any,
-  ): { status: string } {
+  handleBroadcast(client: Socket, data: { message: string }) {
+    const user = (client as any).user;
     this.server.emit('broadcast', { ...data, sender: user?.username });
     return { status: 'Broadcasted' };
   }
