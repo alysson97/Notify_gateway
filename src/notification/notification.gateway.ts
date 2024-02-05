@@ -8,14 +8,17 @@ import {
   SubscribeMessage,
   ConnectedSocket,
 } from '@nestjs/websockets';
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, UseFilters } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { W3cJwtGuard } from '../auth/w3c-jwt.guard';
+import { AllExceptionsFilter } from '../filters/all-exceptions.filter';
+import { User } from '../decorators/user.decorator';
 
 @WebSocketGateway({
   namespace: '/notifications',
   cors: { origin: '*' },
 })
+@UseFilters(AllExceptionsFilter)
 export class NotificationGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -39,8 +42,12 @@ export class NotificationGateway
   @UseGuards(W3cJwtGuard)
   handleSendNotification(
     @MessageBody() data: { message: string },
+    @User() user: any,
   ): { response: string } {
-    this.server.emit('notification', { message: data.message });
+    this.server.emit('notification', {
+      message: data.message,
+      sender: user?.username,
+    });
     return { response: 'Notification sent' };
   }
 
@@ -48,8 +55,9 @@ export class NotificationGateway
   @UseGuards(W3cJwtGuard)
   handleBroadcast(
     @MessageBody() data: { message: string },
+    @User() user: any,
   ): { status: string } {
-    this.server.emit('broadcast', data);
+    this.server.emit('broadcast', { ...data, sender: user?.username });
     return { status: 'Broadcasted' };
   }
 }
