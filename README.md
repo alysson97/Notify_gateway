@@ -1,6 +1,9 @@
 # Notify Gateway
 
 Gateway escalável de notificações em tempo real com NestJS, WebSockets e Redis.
+Este projeto é uma implementação modular usando NestJS, estruturado como uma biblioteca standalone (biblioteca independente). Ele foi desenvolvido utilizando NESTJS apenas módulo importável, permitindo reaproveitamento de funcionalidades e integração fácil sem depender de uma aplicação monolítica.
+
+
 
 ## Funcionalidades
 
